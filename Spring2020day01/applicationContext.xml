@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:aop="http://www.springframework.org/schema/aop"
+xmlns:tx="http://www.springframework.org/schema/tx"
+xsi:schemaLocation="
+http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+
+
+
+
+<bean id="c3p0dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+	<property name="driverClass" value="com.mysql.jdbc.Driver"/>
+	<property name="jdbcUrl" value="jdbc:mysql://localhost:3306/ssh"/>
+	<property name="user" value="root"/>
+	<property name="password" value="mysql"/>
+
+	<property name="minPoolSize" value="3"/>
+	<property name="maxPoolSize" value="10"/>
+	<property name="autoCommitOnClose" value="false"/>
+	<property name="testConnectionOnCheckout" value="true"/>
+	<property name="initialPoolSize" value="3"/>
+	<property name="maxStatements" value="150"/>
+	<property name="maxIdleTime" value="25000"/>
+
+</bean>
+
+
+ <bean id="mySessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+    <property name="dataSource" ref="c3p0dataSource"/>
+    <property name="mappingResources">
+      <list>
+        <value>com/ccit/pojo/Student.hbm.xml</value>
+      </list>
+    </property>
+    <property name="hibernateProperties">
+      <value>
+        hibernate.dialect=org.hibernate.dialect.MySQLDialect
+        hibernate.current_session_context_class=thread
+		hibernate.show_sql=true
+		hibernate.hbm2ddl.auto=update
+      </value>
+    </property>
+  </bean>
+  
+  
+  <bean id="myTxManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+    <property name="sessionFactory" ref="mySessionFactory"/>
+  </bean>
+  
+  
+  <aop:config>
+    <aop:pointcut id="productServiceMethods" 
+            expression="execution(* com.ccit.service.imp.*.*(..))"/>
+    <aop:advisor advice-ref="txAdvice" pointcut-ref="productServiceMethods"/>
+  </aop:config>
+
+  <tx:advice id="txAdvice" transaction-manager="myTxManager">
+    <tx:attributes>
+      <tx:method name="get*" read-only="true"/>
+      <tx:method name="*" />
+    </tx:attributes>
+  </tx:advice>
+  
+  
+  
+  
+  <!-- DaoBase  access db -->
+  <bean id="hibernateTamplate" abstract="true">
+      <property name="sessionFactory" ref="mySessionFactory"></property>
+  </bean>
+  
+ <!-- Dao -->
+ 
+ <bean id="studentDao" class="com.ccit.dao.imp.StudentDaoImp" parent="hibernateTamplate"></bean>
+ <!-- 
+  <bean id="studentDao" class="com.ccit.dao.imp.StudentDaoImp"></bean>
+  <bean id="studentDao" class="com.ccit.dao.imp.StudentDaoImp"></bean>
+  <bean id="studentDao" class="com.ccit.dao.imp.StudentDaoImp"></bean>
+  <bean id="studentDao" class="com.ccit.dao.imp.StudentDaoImp"></bean>
+  <bean id="studentDao" class="com.ccit.dao.imp.StudentDaoImp"></bean>
+  -->
+ 
+ <!-- service tamplate   every service need some daos -->
+  <bean id="serviceBase" abstract="true">
+     <property name="studentDao" ref="studentDao"></property>
+     <!-- 
+      <property name="studentDao" ref="studentDao"></property>
+       <property name="studentDao" ref="studentDao"></property>
+        <property name="studentDao" ref="studentDao"></property>
+         <property name="studentDao" ref="studentDao"></property>
+         
+     
+      -->
+  </bean>
+  
+  
+  <!-- service  -->
+  <bean id="guestService" class="com.ccit.service.imp.GuestServiceImp" parent="serviceBase"/>
+  <!-- 
+  ....
+   -->
+  
+  
+  
+  <!-- Actoin Tamplate -->
+  
+  <bean id="actionBase" abstract="true">
+     <property name="gs" ref="guestService"></property>
+     <!-- 
+     ...
+     ..
+      -->
+  </bean>
+  
+  <bean id="studentAction" class="com.ccit.action.StudentAction" parent="actionBase" scope="prototype"></bean>
+  <!-- 
+  ....
+   -->
+  
+</beans>
