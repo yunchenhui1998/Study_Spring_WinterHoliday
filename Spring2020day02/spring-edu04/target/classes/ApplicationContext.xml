@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd" default-autowire="default">
+  
+  
+<!--     <bean id="tea" class="com.xzy.Teacher" >  
+      <constructor-arg name="name" value="lisi"></constructor-arg>
+       <property name="name" value="老王"></property>
+    </bean> -->
+    <!-- 静态工厂 -->
+   <!--  <bean id="tea" factory-method="createTea" class="com.xzy.TeacherFactory"></bean> -->
+     <bean id="teaFact" class="com.xzy.TeacherFactory" autowire="byName"></bean>
+     <!-- 实例工厂 -->
+     <bean id="tea" factory-method="creatTea1" factory-bean="teaFact" init-method="init" destroy-method="des"></bean>
+     <!-- 
+     <bean id="lazy" class="com.something.ExpensiveToCreateBean" lazy-init="true"/> -->
+<!-- 
+    <bean id="stu" class="com.xzy.Student">
+          <property name="name" value="小张"></property>
+          <property name="age" value="23"></property>
+          <property name="tea" ref="tea"></property>
+    </bean> -->
+    <!-- 开启annotation支持 -->
+   <context:annotation-config></context:annotation-config>
+   <!-- 扫描基包下的所有类上的Annotation -->
+   <context:component-scan base-package="com.xzy"></context:component-scan>
+
+</beans>
